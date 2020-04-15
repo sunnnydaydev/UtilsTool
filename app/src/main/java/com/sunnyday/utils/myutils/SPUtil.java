@@ -1,67 +1,105 @@
-package com.funny.dices.android.utils;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 
 /**
- * Created by biaozhang on 2019/10/19 14:57
- * <p>
- * double check style singleton
+ * SharedPreferences 工具类
  */
-public class SPUtil {
+public class SpUtils {
 
-    private static final String FILE_NAME = "sp_config";// 文件名称
-    private volatile static SharedPreferences mSP = null;
+    private static final String FILE_NAME = "my_sp";
+    @SuppressLint("StaticFieldLeak")
+    private static Context mContext;
+    private SharedPreferences mPreferences;
+    private SharedPreferences.Editor mEditor;
 
-    private SPUtil() {
-    }
-
-    private static synchronized SharedPreferences getInstance(Context context) {
-        if (mSP == null) {
-            synchronized ("lock") {
-                if (mSP == null) {
-                    mSP = context.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE);
-                }
-            }
+    @SuppressLint("CommitPrefEdits")
+    private SpUtils(String fileName) {
+        if (null != mContext) {
+            mPreferences = mContext.getSharedPreferences(fileName, Context.MODE_PRIVATE);
+            mEditor = mPreferences.edit();
+        } else {
+            throw new IllegalArgumentException("context is null, you forgot init SpUtils in your Application !");
         }
-        return mSP;
     }
 
-    public static void putBoolean(String key, boolean value, Context context) {
-        SPUtil.getInstance(context).edit().putBoolean(key, value).apply();
-    }
-
-    public static boolean getBoolean(String key, boolean defValue, Context context) {
-        return SPUtil.getInstance(context).getBoolean(key, defValue);
-    }
-
-    public static void putString(String key, String value, Context context) {
-        SPUtil.getInstance(context).edit().putString(key, value).apply();
-    }
-
-    public static String getString(String key, String defValue, Context context) {
-        return SPUtil.getInstance(context).getString(key, defValue);
-    }
-
-    public static void putInt(String key, int value, Context context) {
-        SPUtil.getInstance(context).edit().putInt(key, value).apply();
-    }
-
-    public static int getInt(String key, int defValue, Context context) {
-        return SPUtil.getInstance(context).getInt(key, defValue);
+    private static class SingleTonHolder {
+        @SuppressLint("StaticFieldLeak")
+        private static SpUtils INSTANCE = new SpUtils(FILE_NAME);
     }
 
     /**
-     * 移除某个key值已经对应的值
+     * 获得SpUtils的实例对象
      */
-    public static void remove(String key, Context context) {
-        SPUtil.getInstance(context).edit().remove(key).apply();
+    public static SpUtils getInstance() {
+        return SingleTonHolder.INSTANCE;
     }
 
     /**
-     * 清除所有内容
+     * 初始化SpUtils，在application中初始化下即可。
      */
-    public static void clear(Context context) {
-        SPUtil.getInstance(context).edit().clear().apply();
+    public static void init(Context context) {
+        mContext = context;
     }
+
+    public void writeInt(String key, int value) {
+        mEditor.putInt(key, value);
+        mEditor.apply();
+    }
+
+    public int readInt(String key) {
+        return mPreferences.getInt(key, 0);
+    }
+
+    public void writeLong(String key, Long value) {
+        mEditor.putLong(key, value);
+        mEditor.apply();
+    }
+
+    public long readLong(String key) {
+        return mPreferences.getLong(key, 0L);
+    }
+
+    public void writeString(String key, String value) {
+        mEditor.putString(key, value);
+        mEditor.apply();
+    }
+
+    public String readString(String key) {
+        return mPreferences.getString(key, null);
+    }
+
+    public void writeBoolean(String key, boolean value) {
+        mEditor.putBoolean(key, value);
+        mEditor.apply();
+    }
+
+    public boolean readBoolean(String key) {
+        return mPreferences.getBoolean(key, false);
+    }
+
+    /**
+     * 清空磁盘上指定的key-value
+     *
+     * @param key key
+     */
+    public boolean removeTargetKey(String key) {
+        if (mPreferences.contains(key)) {
+            mEditor.remove(key);
+            mEditor.apply();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 清空磁盘上所有的key-value
+     */
+    public void removeAll() {
+        mEditor.clear();
+        mEditor.apply();
+    }
+
 }
