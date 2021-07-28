@@ -1,6 +1,3 @@
-package com.sunnyday.listviewdemo;
-
-import java.util.UUID;
 
 /**
  * Created by sunnyDay on 2021/7/20 14:39
