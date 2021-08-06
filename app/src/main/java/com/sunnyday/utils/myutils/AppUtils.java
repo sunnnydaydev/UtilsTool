@@ -1,4 +1,3 @@
-package com.example.albumdemo.user.ui.utils;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
